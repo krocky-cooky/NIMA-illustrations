@@ -117,7 +117,7 @@ class ResNet(Model):
                 ResBlock(1024,1024) for _ in range(5)
             ],
             kl.GlobalAveragePolling2D(),
-            kl.Dense(1000,activation="relu")
+            kl.Dense(1000,activation="relu"),
             kl.Dense(output_dim,activation = 'linear')
         ]
 
