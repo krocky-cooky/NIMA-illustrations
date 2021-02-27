@@ -86,7 +86,7 @@ class ResNet(Model):
         super().__init__()
         self._layers = [
             kl.BatchNormalization(),
-            kl.Activation(tf.nn.relu)
+            kl.Activation(tf.nn.relu),
             kl.Conv2D(
                 filters = 64,
                 kernel_size = 7,
