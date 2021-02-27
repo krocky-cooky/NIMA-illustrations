@@ -106,7 +106,7 @@ class ResNet(Model):
             ),
             [
                 ResBlock(512,512) for _ in range(4)
-            ]
+            ],
             kl.Conv2D(
                 1024,
                 kernel_size = 1,
