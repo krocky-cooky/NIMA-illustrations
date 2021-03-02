@@ -1,2 +1,0 @@
-model_checkpoint_path: "early_stopping_saving"
-all_model_checkpoint_paths: "early_stopping_saving"
