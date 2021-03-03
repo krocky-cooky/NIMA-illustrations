@@ -12,3 +12,4 @@ def img_check(id,height = 1):
     ax = fig.add_subplot(111)
     ax.imshow(im_list)
     plt.show()
+    return im_list
