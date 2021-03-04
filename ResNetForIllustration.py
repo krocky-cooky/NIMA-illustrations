@@ -34,19 +34,19 @@ class DataLoader(object):
         datas = list()
         targets = list()
         tmp = self.data_train[self.data_train['label'] == 0]
-        d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
-        datas.append(d[:,0])
-        targets.append(d[:,1].to_numpy())
+        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
+        datas.append(d)
+        targets.append([0 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 1]
         d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
         datas.append(d[:,0])
-        targets.append(d[:,1].to_numpy())
+        targets.append([1 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 2]
         d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
         datas.append(d[:,0])
-        targets.append(d[:,1].to_numpy())
+        targets.append([2 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 3]
         datas.append(d)
