@@ -48,19 +48,19 @@ class MnistTrainer(object):
 
     def train(
         self,
-        x_train,
-        t_train,
-        x_val,
-        t_val,
+        data_loader,
         epochs,
         batch_size,
         early_stopping = False
     ):
-        n_batches_train = x_train.shape[0] // batch_size
-        n_batches_val = x_val.shape[0] // batch_size
+        
+        
+        n_batches_val = data_loader.val_size // batch_size
+        x_val = data_loader.x_val
+        t_val = data_loader.t_val
 
         for epoch in range(epochs):
-            x_,t_ = shuffle(x_train,t_train)
+            x_,t_ = data_loader.get_train_data()
             self.train_loss.reset_states()
             self.val_loss.reset_states()
             self.train_acc.reset_states()
@@ -208,11 +208,13 @@ class Trainer(object):
         image_path,
         early_stopping = False
     ):
-        n_batches_train = x_train.shape[0] // batch_size
-        n_batches_val = x_val.shape[0] // batch_size
+        n_batches_val = data_loader.val_size // batch_size
+        x_val = data_loader.x_val
+        t_val = data_loader.t_val
+
 
         for epoch in range(epochs):
-            x_,t_ = shuffle(x_train,t_train)
+            x_,t_ = data_loader.get_train_data()
             self.train_acc.reset_states()
             self.train_loss.reset_states()
             self.val_acc.reset_states()
@@ -278,7 +280,7 @@ class Trainer(object):
         img_batch = list()
         for id in x_batch:
             image = np.load(image_path + '/' + str(id) + '.npy')
-            img_batch.append(image/255)
+            img_batch.append(image/standard)
             
         return np.array(img_batch)
 
@@ -287,7 +289,7 @@ class Trainer(object):
             preds = self.model(x)
             loss = self.criterion(t,preds)
         grads = tape.gradient(loss,self.model.trainable_variables)
-        optimizer.apply_gradient(zip(grads,self.model.trainable_variables))
+        self.optimizer.apply_gradient(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
         self.train_acc(t,preds)
 
@@ -340,6 +342,13 @@ class Trainer(object):
 
         return False
 
+    def save(self,name):
+        path = self.save_dir +'/' + name
+        self.model.save_weights(path)
+    
+    def load(self,name):
+        path = self.save_dir +'/' + name
+        self.model.load_weights(path)
 
 
 
