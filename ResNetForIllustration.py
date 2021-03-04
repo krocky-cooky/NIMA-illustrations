@@ -212,6 +212,7 @@ class Trainer(object):
 
         for epoch in range(epochs):
             x_,t_ = data_loader.get_train_data()
+            n_batches_train = x_.shape[0]
             self.train_acc.reset_states()
             self.train_loss.reset_states()
             self.val_acc.reset_states()
