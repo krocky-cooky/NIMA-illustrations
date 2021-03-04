@@ -172,7 +172,7 @@ class Trainer(object):
             input_shape = input_shape,
             output_dim = output_dim
         )
-        self.criterion = tf.keras.losses.CategoricalCrossEntropy()
+        self.criterion = tf.keras.losses.CategoricalCrossentropy()
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
