@@ -96,7 +96,7 @@ class ResNet(Model):
             ),
             ResBlock(64,256),
             [
-                ResBlock(256,256) for _ in range(2)
+                ResBlock(256,256) for _ in range(4)
             ],
             kl.Conv2D(
                 512,
@@ -105,7 +105,7 @@ class ResNet(Model):
                 use_bias = False
             ),
             [
-                ResBlock(512,512) for _ in range(4)
+                ResBlock(512,512) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation="relu"),
