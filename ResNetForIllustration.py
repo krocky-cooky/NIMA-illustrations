@@ -172,7 +172,7 @@ class Trainer(object):
             input_shape = input_shape,
             output_dim = output_dim
         )
-        self.criterion = tf.keras.losses.MSE()
+        self.criterion = tf.keras.losses.CategoricalCrossEntropy()
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
@@ -270,14 +270,15 @@ class Trainer(object):
 
 
     def get_image(
+        self,
         image_pah,
         x_batch,
-        extension = 'jpg'
+        standard = 255
     ):
         img_batch = list()
         for id in x_batch:
-            image = np.load(os.path.join(image_path,str(id) + '.npy'))
-            img_batch.append(image)
+            image = np.load(image_path + '/' + str(id) + '.npy')
+            img_batch.append(image/255)
             
         return np.array(img_batch)
 
@@ -288,11 +289,13 @@ class Trainer(object):
         grads = tape.gradient(loss,self.model.trainable_variables)
         optimizer.apply_gradient(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
+        self.train_acc(t,preds)
 
     def val_step(self,x,t):
         preds = self.model(x)
         loss = self.criterion(t,preds)
         self.val_loss(loss)
+        self.val_acc(t,preds)
 
     def evaluate(self,x_test,t_test,batch_size = 1000):
         loss = tf.keras.metrics.Mean()
