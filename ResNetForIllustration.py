@@ -271,7 +271,7 @@ class Trainer(object):
 
     def get_image(
         self,
-        image_pah,
+        image_path,
         x_batch,
         standard = 255
     ):
