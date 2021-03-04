@@ -162,19 +162,39 @@ class MnistTrainer(object):
     
 
 class Trainer(object):
-    def __init__(self):
+    def __init__(
+        self,
+        input_shape = (128,128,3),
+        output_dim = 10,
+        patience = 5
+        ):
         self.model = ResNet(
-            input_shape = (128,128,3),
-            output_dim = 1
+            input_shape = input_shape,
+            output_dim = output_dim
         )
         self.criterion = tf.keras.losses.MSE()
-        self.optimizer = tf.keras.optimizers.SGD(learning_rate = 0.1)
+        self.optimizer = tf.keras.optimizers.SGD(
+            learning_rate = 0.1,
+            momentum = 0.1
+            )
+        self.train_acc = tf.keras.metrics.CategoricalAccuracy()
         self.train_loss = tf.keras.metrics.Mean()
+        self.val_acc = tf.keras.metrics.CategoricalAccuracy()
         self.val_loss = tf.keras.metrics.Mean()
         self.history = {
+            'train_acc': [],
             'train_loss': [],
+            'val_acc': [],
             'val_loss': []
         }
+        self.es = {
+            'loss': float('inf'),
+            'patience': patience,
+            'step': 0
+        }
+        self.save_dir = './logs'
+        if not os.path.exists(self.save_dir):
+            os.mkdir('logs')
     
 
     def train(
@@ -185,14 +205,17 @@ class Trainer(object):
         t_val,
         epochs,
         batch_size,
-        image_path
+        image_path,
+        early_stopping = False
     ):
         n_batches_train = x_train.shape[0] // batch_size
         n_batches_val = x_val.shape[0] // batch_size
 
         for epoch in range(epochs):
             x_,t_ = shuffle(x_train,t_train)
+            self.train_acc.reset_states()
             self.train_loss.reset_states()
+            self.val_acc.reset_states()
             self.val_loss.reset_states()
             
             for batch in tqdm(range(n_batches_train)):
@@ -213,21 +236,36 @@ class Trainer(object):
             
             self.history['train_loss'].append(self.train_loss.result())
             self.history['val_loss'].append(self.val_loss.result())
-
-            print('epoch {} => train_loss: {},  test_loss: {}'.format(
+            self.history['train_acc'].append(self.train_acc.result())
+            self.history['val_acc'].append(self.val_acc.result())
+            print('epoch {} => train_loss: {},  train_acc: {}, val_loss: {}, val_acc: {}'.format(
                 epoch + 1,
                 self.train_loss.result(),
-                self.val_loss.result()
+                self.train_acc.result(),
+                self.val_loss.result(),
+                self.val_acc.result()
             ))
 
-        fig = plt.figure(figsize = (20,10))
-        ax1 = fig.add_subplot(1,2,1)
-        ax2 = fig.add_subplot(1,2,2)
+            if early_stopping:
+                if self.early_stopping(self.val_loss.result()):
+                    break
+            
+
+        fig = plt.figure(figsize = (10,10))
+        ax1 = fig.add_subplot(2,2,1)
+        ax2 = fig.add_subplot(2,2,2)
+        ax3 = fig.add_subplot(2,2,3)
+        ax4 = fig.add_subplot(2,2,4)
         ax1.plot(self.history['train_loss'])
-        ax2.plot(self.history['val_loss'])
+        ax2.plot(self.history['train_acc'])
+        ax3.plot(self.history['val_loss'])
+        ax4.plot(self.history['val_acc'])
         ax1.set_title('train_loss')
-        ax2.set_title('val_loss')
+        ax2.set_title('train_acc')
+        ax3.set_title('val_loss')
+        ax4.set_title('val_acc')
         plt.show()
+
 
 
 
@@ -238,7 +276,7 @@ class Trainer(object):
     ):
         img_batch = list()
         for id in x_batch:
-            image = np.load('./img_npy/' + str(id) + '.npy')
+            image = np.load(os.path.join(image_path,str(id) + '.npy'))
             img_batch.append(image)
             
         return np.array(img_batch)
@@ -247,8 +285,8 @@ class Trainer(object):
         with tf.GradientTape() as tape:
             preds = self.model(x)
             loss = self.criterion(t,preds)
-        grads = tape.gradient(loss,model.trainable_variables)
-        optimizer.apply_gradient(zip(grads,model.trainable_variables))
+        grads = tape.gradient(loss,self.model.trainable_variables)
+        optimizer.apply_gradient(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
 
     def val_step(self,x,t):
@@ -257,7 +295,8 @@ class Trainer(object):
         self.val_loss(loss)
 
     def evaluate(self,x_test,t_test,batch_size = 1000):
-        loss = tf.metrics.Mean()
+        loss = tf.keras.metrics.Mean()
+        accuracy = tf.keras.metrics.CategorialAccuracy()
         n_batches = x_test.shape[0] // batch_size
         for batch in range(n_batches):
             start = batch_size * batch
@@ -265,16 +304,37 @@ class Trainer(object):
             x_batch = x_test[start:end]
             t_batch = t_test[start:end]
             img_batch = self.get_image(x_batch)
-            loss(self.criterion(t_batch,self.model(img_batch)))
+            preds = self.model(img_batch)
+            loss(self.criterion(t_batch,preds))
+            accuracy(t_batch,preds)
 
         start = batch_size * n_batches
         end = x_test.shape[0]
         x_batch = x_test[start:end]
         t_batch = t_test[start:end]
         img_batch = self.get_image(x_batch)
-        loss(self.criterion(t_batch,self.model(img_batch)))
-        print(loss.result().numpy())
-        return loss.result().numpy()
+        preds = self.model(img_batch)
+        loss(self.criterion(t_batch,preds))
+        accuracy(t_batch,preds)
+        print('loss: {}, accuracy: {}'.format(
+            loss.result(),
+            accuracy.result()
+        )
+        return (loss.result().numpy(),accuracy.result().numpy())
+
+    def early_stopping(self,loss):
+        if loss > self.es['loss']:
+            self.es['step'] += 1
+            if self.es['step'] > self.es['patience']:
+                print('early stopping')
+                self.load('early_stopping_saving')
+                return True
+        else:
+            self.es['loss'] = loss
+            self.es['step'] = 0
+            self.save('early_stopping_saving')
+
+        return False
 
 
 
