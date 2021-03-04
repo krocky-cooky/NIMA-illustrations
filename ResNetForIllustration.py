@@ -199,10 +199,7 @@ class Trainer(object):
 
     def train(
         self,
-        x_train,
-        t_train,
-        x_val,
-        t_val,
+        data_loader,
         epochs,
         batch_size,
         image_path,
