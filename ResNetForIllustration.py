@@ -12,6 +12,52 @@ sys.path.append(os.path.dirname(__file__))
 
 from models import ResNet
 
+class DataRoader(object):
+    def __init__(self):
+        df = pd.read_csv('target_available.csv')
+        data_train,data_test,_,_ = train_test_split(df,df['label'],stratify = df['label'],test_size = 0.2)
+        self.x_test = data_test['illust_id'].to_numpy()
+        self.t_test = data_test['label'].to_numpy()
+        self.t_test = np.identity(5)[self.t_test]
+        self.data_train,data_val,_,_ = train_test_split(data_train,data_train['label'],stratify = data_train['label'],test_size = 0.1)
+        self.x_val = data_val['illust_id'].to_numpy()
+        self.t_val = data_val['label'].to_numpy()
+        self.t_val = np.identity(5)[self.t_val]
+        
+        self.val_size = self.x_val.shape[0]
+        self.test_size = self.x_test.shape[0]
+        
+            
+    def get_train_data(self):
+        datas = list()
+        targets = list()
+        tmp = self.data_train[self.data_train['label'] == 0]
+        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
+        datas.append(d)
+        targets.append(tmp['label'].to_numpy())
+        
+        tmp = self.data_train[self.data_train['label'] == 1]
+        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
+        datas.append(d)
+        targets.append(tmp['label'].to_numpy())
+        
+        tmp = self.data_train[self.data_train['label'] == 2]
+        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
+        datas.append(d)
+        targets.append(tmp['label'].to_numpy())
+        
+        tmp = self.data_train[self.data_train['label'] == 3]
+        datas.append(d)
+        targets.append(tmp['label'].to_numpy())
+        
+        tmp = self.data_train[self.data_train['label'] == 4]
+        datas.append(d)
+        targets.append(tmp['label'].to_numpy())
+        
+        datas = np.hstack(datas)
+        targets = np.hstack(targets)
+        targets = np.identity(5)[targets]
+        return (datas,targets)
 
 
 class MnistTrainer(object):
@@ -212,7 +258,7 @@ class Trainer(object):
 
         for epoch in range(epochs):
             x_,t_ = data_loader.get_train_data()
-            n_batches_train = x_.shape[0]
+            n_batches_train = x_.shape[0] // batch_size
             self.train_acc.reset_states()
             self.train_loss.reset_states()
             self.val_acc.reset_states()
@@ -287,7 +333,7 @@ class Trainer(object):
             preds = self.model(x)
             loss = self.criterion(t,preds)
         grads = tape.gradient(loss,self.model.trainable_variables)
-        self.optimizer.apply_gradient(zip(grads,self.model.trainable_variables))
+        self.optimizer.apply_gradients(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
         self.train_acc(t,preds)
 
