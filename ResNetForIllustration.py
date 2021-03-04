@@ -40,12 +40,12 @@ class DataLoader(object):
         
         tmp = self.data_train[self.data_train['label'] == 1]
         d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
-        datas.append(d[:,0])
+        datas.append(d)
         targets.append([1 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 2]
         d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
-        datas.append(d[:,0])
+        datas.append(d)
         targets.append([2 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 3]
