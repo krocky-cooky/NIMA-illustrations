@@ -320,6 +320,7 @@ class Trainer(object):
             loss.result(),
             accuracy.result()
         )
+        )
         return (loss.result().numpy(),accuracy.result().numpy())
 
     def early_stopping(self,loss):
