@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers as kl
 from tensorflow.keras import Model
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from PIL import Image
