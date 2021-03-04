@@ -49,17 +49,17 @@ class DataLoader(object):
         targets.append([2 for _ in range(d.shape[0])])
         
         tmp = self.data_train[self.data_train['label'] == 3]
-        datas.append(d)
+        datas.append(tmp['illust_id'].to_numpy())
         targets.append(tmp['label'].to_numpy())
         
         tmp = self.data_train[self.data_train['label'] == 4]
-        datas.append(d)
+        datas.append(tmp['illust_id'].to_numpy())
         targets.append(tmp['label'].to_numpy())
         
         datas = np.hstack(datas)
         targets = np.hstack(targets)
         targets = np.identity(5)[targets]
-        return (datas,targets)
+        return shuffle(datas,targets)
 
 
 class MnistTrainer(object):
@@ -274,9 +274,10 @@ class Trainer(object):
                 img_batch = self.get_image(image_path,x_batch)
                 self.train_step(img_batch,t_batch)
 
-            for batch in tqdm(range(n_batches_val)):
+            for batch in tqdm(range(n_batches_val + 1)):
                 start = batch * batch_size
                 end = start + batch_size
+                end = min(end,x_val.shape[0])
                 x_batch = x_val[start:end]
                 t_batch = t_val[start:end]
                 img_batch = self.get_image(image_path,x_batch)
