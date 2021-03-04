@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(__file__))
 
 from models import ResNet
 
-class DataRoader(object):
+class DataLoader(object):
     def __init__(self):
         df = pd.read_csv('target_available.csv')
         data_train,data_test,_,_ = train_test_split(df,df['label'],stratify = df['label'],test_size = 0.2)
@@ -34,19 +34,19 @@ class DataRoader(object):
         datas = list()
         targets = list()
         tmp = self.data_train[self.data_train['label'] == 0]
-        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
-        datas.append(d)
-        targets.append(tmp['label'].to_numpy())
+        d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
+        datas.append(d[:,0])
+        targets.append(d[:,1].to_numpy())
         
         tmp = self.data_train[self.data_train['label'] == 1]
-        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
-        datas.append(d)
-        targets.append(tmp['label'].to_numpy())
+        d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
+        datas.append(d[:,0])
+        targets.append(d[:,1].to_numpy())
         
         tmp = self.data_train[self.data_train['label'] == 2]
-        d = np.random.choice(tmp['illust_id'].to_numpy(),size = 20000,replace = False)
-        datas.append(d)
-        targets.append(tmp['label'].to_numpy())
+        d = np.random.choice(tmp[['illust_id','label']].to_numpy(),size = 20000,replace = False)
+        datas.append(d[:,0])
+        targets.append(d[:,1].to_numpy())
         
         tmp = self.data_train[self.data_train['label'] == 3]
         datas.append(d)
@@ -347,7 +347,7 @@ class Trainer(object):
 
     def evaluate(self,x_test,t_test,batch_size = 1000):
         loss = tf.keras.metrics.Mean()
-        accuracy = tf.keras.metrics.CategorialAccuracy()
+        accuracy = tf.keras.metrics.CategoricalAccuracy()
         n_batches = x_test.shape[0] // batch_size
         for batch in range(n_batches):
             start = batch_size * batch
