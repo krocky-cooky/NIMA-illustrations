@@ -88,24 +88,24 @@ class ResNet(Model):
             kl.BatchNormalization(),
             kl.Activation(tf.nn.relu),
             kl.Conv2D(
-                filters = 64,
+                filters = 16,
                 kernel_size = 7,
                 strides = 2,
                 padding = 'same',
                 input_shape = input_shape
             ),
-            ResBlock(64,256),
+            ResBlock(16,32),
             [
-                ResBlock(256,256) for _ in range(4)
+                ResBlock(32,32) for _ in range(4)
             ],
             kl.Conv2D(
-                512,
+                64,
                 kernel_size = 1,
                 strides = 2,
                 use_bias = False
             ),
             [
-                ResBlock(512,512) for _ in range(2)
+                ResBlock(64,64) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation="relu"),
