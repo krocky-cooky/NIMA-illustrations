@@ -114,7 +114,7 @@ class ResNet(Model):
                 use_bias = False
             ),
             [
-                ResBlock(128,128) for _ in range(3):
+                ResBlock(128,128) for _ in range(3)
             ]
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation="relu"),
