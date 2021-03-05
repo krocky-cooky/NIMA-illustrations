@@ -115,7 +115,7 @@ class ResNet(Model):
             ),
             [
                 ResBlock(128,128) for _ in range(3)
-            ]
+            ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation="relu"),
             kl.Dense(output_dim,activation = 'softmax')
