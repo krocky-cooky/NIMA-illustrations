@@ -27,7 +27,7 @@ class WideResBlock(Model):
         self.av2 = kl.Activation(tf.nn.relu)
         self.dropout = kl.Dropout(rate = 0.2)
         self.conv2 = kl.Conv2D(
-            chnnels,
+            channels,
             kernel_size = 3,
             strides = 1,
             padding = 'same',
@@ -181,15 +181,28 @@ class WideResNet(Model):
                 kernel_size = 3,
                 strides = 1,
                 padding = 'same',
-                input_shape = input_shape
+                input_shape = input_shape,
+                use_bias = False
             ),
             kl.MaxPool2D(pool_size=3, strides=2, padding="same"),
             [
                 WideResBlock(32) for _ in range(5)
             ],
+            kl.Conv2D(
+                64,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ), 
             [
                 WideResBlock(64) for _ in range(5)
             ],
+            kl.Conv2D(
+                128,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ),
             [
                 WideResBlock(128) for _ in range(5)
             ],
