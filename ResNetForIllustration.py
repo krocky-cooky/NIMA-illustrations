@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 import os,sys
 sys.path.append(os.path.dirname(__file__))
 
-from models import ResNet
+from models import ResNet,WideResNet
 
 class DataLoader(object):
     def __init__(self):
@@ -68,11 +68,21 @@ class MnistTrainer(object):
         input_shape,
         output_dim,
         patience = 4,
+        structure,
     ):
-        self.model = ResNet(
-            input_shape = input_shape,
-            output_dim = output_dim
-        )
+        self.model = None
+        if structure = 'wide_res_net':
+            self.model = WideResNet(
+                input_shape = input_shape,
+                output_dim = output_dim
+            )
+        elif structure = 'res_net':
+            self.model = ResNet(
+                input_shape = input_shape,
+                output_dim = output_dim
+            )
+        else:
+            raise Exception('no structure')
         self.criterion = tf.keras.losses.CategoricalCrossentropy()
         self.optimizer = tf.keras.optimizers.SGD(learning_rate = 0.1)
         self.train_loss = tf.keras.metrics.Mean()
