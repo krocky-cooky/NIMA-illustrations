@@ -11,13 +11,14 @@ from tqdm import tqdm
 class WideResBlock(Model):
     def __init__(
         self,
-        channels
+        input_channels,
+        output_channels
     ):
         super().__init__()
         self.bn1 = kl.BatchNormalization()
         self.av1 = kl.Activation(tf.nn.relu)
         self.conv1 = kl.Conv2D(
-            channels,
+            output_channels,
             kernel_size = 3,
             strides = 1,
             padding = 'same',
@@ -27,21 +28,31 @@ class WideResBlock(Model):
         self.av2 = kl.Activation(tf.nn.relu)
         self.dropout = kl.Dropout(rate = 0.2)
         self.conv2 = kl.Conv2D(
-            channels,
+            output_channels,
             kernel_size = 3,
             strides = 1,
             padding = 'same',
             use_bias = False
         )
-        self.sc = self._scblock()
+        self.sc = self._scblock(input_channels,output_channels)
         self.add = kl.Add()
 
-    def _scblock(self):
-        return lambda x: x
+    def _scblock(self,input_channels,output_channels):
+        if input_channels == output_channels:
+            return lambda x: x
+        else:
+            conv_sc = kl.Conv2D(
+                output_channels,
+                kernel_size = 3,
+                strides = 1,
+                padding = 'same',
+                use_bias = False
+            )
+            return conv_sc
 
     def call(self,x):
         out1 = self.conv1(self.av1(self.bn1(x)))
-        out2 = self.conv2(self.dropout(self.av2(self.bn2(x))))
+        out2 = self.conv2(self.dropout(self.av2(self.bn2(out1))))
         out = self.add([out2,self.sc(x)])
         return out
 
@@ -185,26 +196,17 @@ class WideResNet(Model):
                 use_bias = False
             ),
             kl.MaxPool2D(pool_size=3, strides=2, padding="same"),
+            WideResBlock(16,32),
             [
-                WideResBlock(32) for _ in range(5)
+                WideResBlock(32,32) for _ in range(2)
             ],
-            kl.Conv2D(
-                64,
-                kernel_size = 1,
-                strides = 2,
-                use_bias = False
-            ), 
+            WideResBlock(32,64),
             [
-                WideResBlock(64) for _ in range(5)
+                WideResBlock(64,64) for _ in range(2)
             ],
-            kl.Conv2D(
-                128,
-                kernel_size = 1,
-                strides = 2,
-                use_bias = False
-            ),
+            WideResBlock(64,128),
             [
-                WideResBlock(128) for _ in range(5)
+                WideResBlock(128,128) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation = 'relu'),
