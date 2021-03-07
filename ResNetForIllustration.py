@@ -68,7 +68,7 @@ class MnistTrainer(object):
         input_shape,
         output_dim,
         patience = 4,
-        structure,
+        structure = 'wide_res_net',
     ):
         self.model = None
         if structure == 'wide_res_net':
@@ -225,7 +225,7 @@ class Trainer(object):
         input_shape = (128,128,3),
         output_dim = 10,
         patience = 5,
-        structure,
+        structure = 'wide_res_net',
         ):
         self.model = None
         if structure == 'wide_res_net':
