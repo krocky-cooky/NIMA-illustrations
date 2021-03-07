@@ -224,12 +224,22 @@ class Trainer(object):
         self,
         input_shape = (128,128,3),
         output_dim = 10,
-        patience = 5
+        patience = 5,
+        structure,
         ):
-        self.model = ResNet(
-            input_shape = input_shape,
-            output_dim = output_dim
-        )
+        self.model = None
+        if structure == 'wide_res_net':
+            self.model = WideResNet(
+                input_shape = input_shape,
+                output_dim = output_dim
+            )
+        elif structure == 'res_net':
+            self.model = ResNet(
+                input_shape = input_shape,
+                output_dim = output_dim
+            )
+        else:
+            raise Exception('no structure')
         self.criterion = tf.keras.losses.CategoricalCrossentropy()
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
