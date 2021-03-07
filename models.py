@@ -52,7 +52,7 @@ class WideResBlock(Model):
 
     def call(self,x):
         out1 = self.conv1(self.av1(self.bn1(x)))
-        out2 = self.conv2(self.dropout(self.av2(self.bn2(out1))))
+        out2 = self.conv2(self.dropout(self.av2(self.bn2(out1)),training = True))
         out = self.add([out2,self.sc(x)])
         return out
 
