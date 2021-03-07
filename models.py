@@ -198,15 +198,15 @@ class WideResNet(Model):
             kl.MaxPool2D(pool_size=3, strides=2, padding="same"),
             WideResBlock(16,32),
             [
-                WideResBlock(32,32) for _ in range(2)
+                WideResBlock(32,32) for _ in range(1)
             ],
             WideResBlock(32,64),
             [
-                WideResBlock(64,64) for _ in range(2)
+                WideResBlock(64,64) for _ in range(1)
             ],
             WideResBlock(64,128),
             [
-                WideResBlock(128,128) for _ in range(2)
+                WideResBlock(128,128) for _ in range(1)
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation = 'relu'),
