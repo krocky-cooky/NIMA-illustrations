@@ -175,7 +175,7 @@ class WideResNet(Model):
         super().__init__()
         self._layers = [
             kl.BatchNormalization(),
-            kl.Activation(),
+            kl.Activation(tf.nn.relu),
             kl.Conv2D(
                 filters = 16,
                 kernel_size = 3,
