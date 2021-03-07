@@ -200,13 +200,23 @@ class WideResNet(Model):
             [
                 WideResBlock(32,32) for _ in range(1)
             ],
-            WideResBlock(32,64),
+            kl.Conv2D(
+                64,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ),
             [
-                WideResBlock(64,64) for _ in range(1)
+                WideResBlock(64,64) for _ in range(2)
             ],
-            WideResBlock(64,128),
+            kl.Conv2D(
+                128,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ),
             [
-                WideResBlock(128,128) for _ in range(1)
+                WideResBlock(128,128) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation = 'relu'),
