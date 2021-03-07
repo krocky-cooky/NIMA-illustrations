@@ -71,12 +71,12 @@ class MnistTrainer(object):
         structure,
     ):
         self.model = None
-        if structure = 'wide_res_net':
+        if structure == 'wide_res_net':
             self.model = WideResNet(
                 input_shape = input_shape,
                 output_dim = output_dim
             )
-        elif structure = 'res_net':
+        elif structure == 'res_net':
             self.model = ResNet(
                 input_shape = input_shape,
                 output_dim = output_dim
