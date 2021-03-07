@@ -8,6 +8,42 @@ from PIL import Image
 from tqdm import tqdm
 
 
+class WideResBlock(Model):
+    def __init__(
+        self,
+        channels
+    ):
+        super().__init__()
+        self.bn1 = kl.BatchNormalization()
+        self.av1 = kl.Activation(tf.nn.relu)
+        self.conv1 = kl.Conv2D(
+            channels,
+            kernel_size = 3,
+            strides = 1,
+            padding = 'same',
+            use_bias = False
+        )
+        self.bn2 = kl.BatchNormalization()
+        self.av2 = kl.Activation(tf.nn.relu)
+        self.dropout = kl.Dropout(rate = 0.2)
+        self.conv2 = kl.Conv2D(
+            chnnels,
+            kernel_size = 3,
+            strides = 1,
+            padding = 'same',
+            use_bias = False
+        )
+        self.sc = self._scblock()
+        self.add = kl.Add()
+
+    def _scblock(self):
+        return lambda x: x
+
+    def call(self,x):
+        out1 = self.conv1(self.av1(self.bn1(x)))
+        out2 = self.conv2(self.dropout(self.av2(self.bn2(x))))
+        out = self.add([out2,self.sc(x)])
+        return out
 
 class ResBlock(Model):
     def __init__(
@@ -118,6 +154,47 @@ class ResNet(Model):
             ],
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation="relu"),
+            kl.Dense(output_dim,activation = 'softmax')
+        ]
+
+    def call(self,x):
+        for layer in self._layers:
+            if isinstance(layer,list):
+                for l in layer:
+                    x = l(x)
+            else:
+                x = layer(x)
+        return x
+
+class WideResNet(Model):
+    def __init__(
+        self,
+        input_shape,
+        output_dim,
+    ):
+        super().__init__()
+        self._layers = [
+            kl.BatchNormalization(),
+            kl.Activation(),
+            kl.Conv2D(
+                filters = 16,
+                kernel_size = 3,
+                strides = 1,
+                padding = 'same',
+                input_shape = input_shape
+            ),
+            kl.MaxPool2D(pool_size=3, strides=2, padding="same"),
+            [
+                WideResBlock(32) for _ in range(5)
+            ],
+            [
+                WideResBlock(64) for _ in range(5)
+            ],
+            [
+                WideResBlock(128) for _ in range(5)
+            ],
+            kl.GlobalAveragePooling2D(),
+            kl.Dense(1000,activation = 'relu'),
             kl.Dense(output_dim,activation = 'softmax')
         ]
 
