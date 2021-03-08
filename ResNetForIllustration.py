@@ -226,6 +226,7 @@ class Trainer(object):
         output_dim = 10,
         patience = 5,
         structure = 'wide_res_net',
+        loss = 'categorical_crossentropy'
         ):
         self.model = None
         if structure == 'wide_res_net':
@@ -240,7 +241,10 @@ class Trainer(object):
             )
         else:
             raise Exception('no structure')
-        self.criterion = tf.keras.losses.CategoricalCrossentropy()
+        if loss == 'categorical_crossentropy':
+            self.criterion = tf.keras.losses.CategoricalCrossentropy() 
+        elif loss == 'emd':
+            self.criterion = earth_mover_distance
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
