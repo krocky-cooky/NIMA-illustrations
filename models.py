@@ -234,6 +234,6 @@ class WideResNet(Model):
 
 
 def earth_mover_distance(t,preds):
-    label_dist = tf.constant(np.abs(np.repeat(np.arange(t.shape[1])[np.newaxis,:],t.shape[0],axis = 0) - np.argmax(t,axis = 1).reshape((-1,1))))
+    label_dist = tf.constant(np.abs(np.repeat(np.arange(t.shape[1])[np.newaxis,:],t.shape[0],axis = 0) - np.argmax(t,axis = 1).reshape((-1,1))),dtype=tf.float64)
     emd_loss = tf.reduce_mean(tf.reduce_sum(tf.multiply(preds,label_dist),1)**2)
     return emd_loss
