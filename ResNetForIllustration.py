@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 import os,sys
 sys.path.append(os.path.dirname(__file__))
 
-from models import ResNet,WideResNet
+from models import ResNet,WideResNet,earth_mover_distance
 
 class DataLoader(object):
     def __init__(self):
