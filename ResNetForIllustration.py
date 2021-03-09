@@ -360,6 +360,8 @@ class Trainer(object):
         with tf.GradientTape() as tape:
             preds = self.model(x)
             loss = self.criterion(t,preds)
+        if tf.math.is_nan(loss):
+            print('nan occured')
         grads = tape.gradient(loss,self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
