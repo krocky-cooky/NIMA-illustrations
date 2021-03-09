@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 import os,sys
 sys.path.append(os.path.dirname(__file__))
 
-from models import ResNet,WideResNet,earth_mover_distance
+from models import ResNet,WideResNet,EMD
 
 class DataLoader(object):
     def __init__(self):
@@ -244,7 +244,7 @@ class Trainer(object):
         if loss == 'categorical_crossentropy':
             self.criterion = tf.keras.losses.CategoricalCrossentropy() 
         elif loss == 'emd':
-            self.criterion = earth_mover_distance
+            self.criterion = EMD()
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
@@ -319,8 +319,9 @@ class Trainer(object):
                 self.val_acc.result()
             ))
 
-            if early_stopping:
-                if self.early_stopping(self.val_loss.result()):
+
+            if self.early_stopping(self.val_loss.result()):
+                if early_stopping:
                     break
             
 
