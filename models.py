@@ -232,12 +232,7 @@ class WideResNet(Model):
                 x = layer(x)
         return x
 
-
-class EMD(object):
-    def __init__(self):
-        pass 
-
-    def __call__(self,t,preds):
-        return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t)**2,axis = 1))
+def EMD(t,preds):
+    return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t)**2,axis = 1))
 
     

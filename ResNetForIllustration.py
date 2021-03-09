@@ -244,7 +244,7 @@ class Trainer(object):
         if loss == 'categorical_crossentropy':
             self.criterion = tf.keras.losses.CategoricalCrossentropy() 
         elif loss == 'emd':
-            self.criterion = EMD()
+            self.criterion = EMD
         self.optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
