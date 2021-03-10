@@ -230,11 +230,9 @@ class WideResNet(Model):
                     x = l(x)
             else:
                 x = layer(x)
-            if tf.math.is_nan(x):
-                print('nan occured in layer')
         return x
 
 def EMD(t,preds):
-    return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t)**2,axis = 1))
+    return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t,axis = 1)**2,axis = 1))
 
     

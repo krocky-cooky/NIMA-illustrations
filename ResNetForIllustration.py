@@ -8,6 +8,7 @@ from sklearn.utils import shuffle
 from PIL import Image
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+import json
 
 import os,sys
 sys.path.append(os.path.dirname(__file__))
@@ -226,7 +227,8 @@ class Trainer(object):
         output_dim = 10,
         patience = 5,
         structure = 'wide_res_net',
-        loss = 'categorical_crossentropy'
+        loss = 'categorical_crossentropy',
+        name = 'latest'
         ):
         self.model = None
         if structure == 'wide_res_net':
@@ -257,7 +259,8 @@ class Trainer(object):
             'train_acc': [],
             'train_loss': [],
             'val_acc': [],
-            'val_loss': []
+            'val_loss': [],
+            'start': 0,
         }
         self.es = {
             'loss': float('inf'),
@@ -267,6 +270,7 @@ class Trainer(object):
         self.save_dir = './logs'
         if not os.path.exists(self.save_dir):
             os.mkdir('logs')
+        self.name = name
     
 
     def train(
@@ -280,9 +284,11 @@ class Trainer(object):
         n_batches_val = data_loader.val_size // batch_size
         x_val = data_loader.x_val
         t_val = data_loader.t_val
+        start = self.history['start']
 
 
-        for epoch in range(epochs):
+        for epoch in range(start,epochs):
+            self.history['start'] = epoch
             x_,t_ = data_loader.get_train_data()
             n_batches_train = x_.shape[0] // batch_size
             self.train_acc.reset_states()
@@ -297,6 +303,7 @@ class Trainer(object):
                 t_batch = t_[start:end]
                 img_batch = self.get_image(image_path,x_batch)
                 self.train_step(img_batch,t_batch)
+
 
             for batch in tqdm(range(n_batches_val + 1)):
                 start = batch * batch_size
@@ -323,22 +330,9 @@ class Trainer(object):
             if self.early_stopping(self.val_loss.result()):
                 if early_stopping:
                     break
-            
+            self.save(self.name)
 
-        fig = plt.figure(figsize = (10,10))
-        ax1 = fig.add_subplot(2,2,1)
-        ax2 = fig.add_subplot(2,2,2)
-        ax3 = fig.add_subplot(2,2,3)
-        ax4 = fig.add_subplot(2,2,4)
-        ax1.plot(self.history['train_loss'])
-        ax2.plot(self.history['train_acc'])
-        ax3.plot(self.history['val_loss'])
-        ax4.plot(self.history['val_acc'])
-        ax1.set_title('train_loss')
-        ax2.set_title('train_acc')
-        ax3.set_title('val_loss')
-        ax4.set_title('val_acc')
-        plt.show()
+        self.plot()
 
 
 
@@ -360,8 +354,6 @@ class Trainer(object):
         with tf.GradientTape() as tape:
             preds = self.model(x)
             loss = self.criterion(t,preds)
-        if tf.math.is_nan(loss):
-            print('nan occured')
         grads = tape.gradient(loss,self.model.trainable_variables)
         self.optimizer.apply_gradients(zip(grads,self.model.trainable_variables))
         self.train_loss(loss)
@@ -377,7 +369,7 @@ class Trainer(object):
         loss = tf.keras.metrics.Mean()
         accuracy = tf.keras.metrics.CategoricalAccuracy()
         n_batches = x_test.shape[0] // batch_size
-        for batch in range(n_batches):
+        for batch in tqdm(range(n_batches)):
             start = batch_size * batch
             end = start + batch_size
             x_batch = x_test[start:end]
@@ -403,26 +395,53 @@ class Trainer(object):
         return (loss.result().numpy(),accuracy.result().numpy())
 
     def early_stopping(self,loss):
+        name = self.name + '_es'
         if loss > self.es['loss']:
             self.es['step'] += 1
             if self.es['step'] > self.es['patience']:
                 print('early stopping')
-                self.load('early_stopping_saving')
                 return True
         else:
             self.es['loss'] = loss
             self.es['step'] = 0
-            self.save('early_stopping_saving')
+            self.save(name)
 
         return False
 
     def save(self,name):
         path = self.save_dir +'/' + name
         self.model.save_weights(path)
-    
+        dic = {
+            'history': self.history,
+            'es': self.es
+        }
+        with open(self.save_dir + '/' + name + '.json','w') as f:
+            json.dump(dic,f)
+        
     def load(self,name):
         path = self.save_dir +'/' + name
         self.model.load_weights(path)
+        with open(self.save_dir + '/' + name + '.json','r') as f:
+            data = f.read()
+        dic = json.load(data)
+        self.hisotory = dic['history']
+        self.es = dic['es']
+
+    def plot(self):
+        fig = plt.figure(figsize = (10,10))
+        ax1 = fig.add_subplot(2,2,1)
+        ax2 = fig.add_subplot(2,2,2)
+        ax3 = fig.add_subplot(2,2,3)
+        ax4 = fig.add_subplot(2,2,4)
+        ax1.plot(self.history['train_loss'])
+        ax2.plot(self.history['train_acc'])
+        ax3.plot(self.history['val_loss'])
+        ax4.plot(self.history['val_acc'])
+        ax1.set_title('train_loss')
+        ax2.set_title('train_acc')
+        ax3.set_title('val_loss')
+        ax4.set_title('val_acc')
+        plt.show()
 
 
 
