@@ -16,8 +16,8 @@ sys.path.append(os.path.dirname(__file__))
 from models import ResNet,WideResNet,EMD
 
 class DataLoader(object):
-    def __init__(self):
-        df = pd.read_csv('target_available.csv')
+    def __init__(self,file):
+        df = pd.read_csv(file)
         data_train,data_test,_,_ = train_test_split(df,df['label'],stratify = df['label'],test_size = 0.2)
         self.x_test = data_test['illust_id'].to_numpy()
         self.t_test = data_test['label'].to_numpy()
