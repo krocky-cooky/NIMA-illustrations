@@ -314,10 +314,10 @@ class Trainer(object):
                 img_batch = self.get_image(image_path,x_batch)
                 self.val_step(img_batch,t_batch)
             
-            self.history['train_loss'].append(self.train_loss.result())
-            self.history['val_loss'].append(self.val_loss.result())
-            self.history['train_acc'].append(self.train_acc.result())
-            self.history['val_acc'].append(self.val_acc.result())
+            self.history['train_loss'].append(self.train_loss.result().numpy())
+            self.history['val_loss'].append(self.val_loss.result().numpy())
+            self.history['train_acc'].append(self.train_acc.result().numpy())
+            self.history['val_acc'].append(self.val_acc.result().numpy())
             print('epoch {} => train_loss: {},  train_acc: {}, val_loss: {}, val_acc: {}'.format(
                 epoch + 1,
                 self.train_loss.result(),
