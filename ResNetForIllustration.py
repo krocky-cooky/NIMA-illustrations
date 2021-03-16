@@ -4,7 +4,7 @@ from tensorflow.keras import Model
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.utils import shuffle
+from sklearn import utils
 from PIL import Image
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -13,7 +13,7 @@ import json
 import os,sys
 sys.path.append(os.path.dirname(__file__))
 
-from models import ResNet,WideResNet,EMD
+from models import ResNet,WideResNet,EfficientNet,EMD
 
 class DataLoader(object):
     def __init__(self,file):
@@ -60,7 +60,7 @@ class DataLoader(object):
         datas = np.hstack(datas)
         targets = np.hstack(targets)
         targets = np.identity(5)[targets]
-        return shuffle(datas,targets)
+        return utils.shuffle(datas,targets)
 
 
 class MnistTrainer(object):
@@ -442,6 +442,95 @@ class Trainer(object):
         ax3.set_title('val_loss')
         ax4.set_title('val_acc')
         plt.show()
+
+    class EfficientNetTrainer(object):
+        def __init__(
+            self,
+            input_shape,
+            output_dim,
+        ):
+            self.model = EfficientNet(input_shape,output_dim)
+            optimizer = tf.keras.optimizers.SGD(
+                learning_rate = 0.1,
+                momentum = 0.1
+            )
+            self.model.compile(
+                optimizer = optimizer,
+                loss = EMD,
+                metrics = ['acc']
+            )
+
+        def train(
+            self,
+            x_train,
+            t_train,
+            x_val,
+            t_val,
+            epochs,
+            batch_size,
+            image_path
+        ):
+            train_steps, train_batches = self.batch_iter(x_train,t_train,batch_size,shuffle = True,image_path = image_path)
+            val_steps,val_batches = self.batch_iter(x_val,t_val,batch_size,shuffle = False,image_path = image_path)
+
+            callbacks = [
+                ModelCheckpoint(
+                    './logs',
+                    monitor = 'val_loss',
+                    verbose = 1,
+                    save_best_only = True,
+                    mode = 'min'
+                    )
+            ]
+            
+            
+            self.history = self.model.fit_generator(
+                train_batches,
+                train_steps,
+                epochs = 30,
+                validation_data = val_batches,
+                validation_steps = val_steps,
+                callbacks = callbacks
+            )
+            
+        
+        def batch_iter(
+            self,
+            data,
+            target,
+            batch_size,
+            shuffle,
+            image_path
+        ):
+            n_batches = data.shape[0] // batch_size
+
+            def data_generator():
+                data_size = data.shape[0]
+                while True:
+                    x_ = None
+                    t_ = None
+                    if shuffle:
+                        x_,t_  = utils.shuffle(data,target)
+                    else:
+                        x_,t_ = utils.shuffle(data,target)
+                    
+                    for i in range(n_batches):
+                        start = i*batch_size
+                        end = min(data.shape[0],start + batch_size)
+                        x_batch = x_[start:end]
+                        t_batch = t_[start:end]
+                        img_batch = list()
+                        for id in x_batch:
+                            image = np.load(image_path + '/' + str(id) + '.npy')
+                            img_batch.append(image/255)
+                        yield np.array(img_batch),t_batch
+            
+            return n_batches,data_generator()
+
+        
+
+
+
 
 
 

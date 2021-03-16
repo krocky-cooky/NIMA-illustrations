@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from PIL import Image
 from tqdm import tqdm
+from efficientnet.keras import EfficientNetB7
 
 
 class WideResBlock(Model):
@@ -231,6 +232,63 @@ class WideResNet(Model):
             else:
                 x = layer(x)
         return x
+
+def EfficientNet(
+    input_shape,
+    output_dim
+):
+    input_layer = kl.Input(shape = input_shape)
+    efficient_net = EfficientNetB7(
+        weights = 'imagenet',
+        include_top = False,
+        input_tensor = input_layer,
+        pooling = 'max'
+    )
+
+    for layer in efficient_net.layers:
+        layer.trainable = True
+
+    bottleneck = efficient_net.output
+
+    _ = kl.Dense(1000,activation = 'relu')(bottleneck)
+    bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')(_)
+
+    #_ = kl.Dense(1000,activvation = 'relu')(bottleneck)
+    #aspect_ratio_output = kl.Dense(2,activation = 'softmax',name = 'aspect_ratio')(_)
+
+    model = Model(inputs = input_layer,outputs = bookmark_output)
+
+    return model
+
+
+def EfficientNetWithMultiOutput(
+    input_shape,
+    output_dim,
+):
+    input_layer = kl.Input(shape = input_shape)
+    efficient_net = EfficientNetB7(
+        weights = 'imagenet',
+        include_top = False,
+        input_tensor = input_layer,
+        pooling = 'max'
+    )
+
+    for layer in efficient_net.layers:
+        layer.trainable = True
+
+    bottleneck = efficient_net.output
+
+    _ = kl.Dense(1000,activation = 'relu')(bottleneck)
+    bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')(_)
+
+    _ = kl.Dense(1000,activvation = 'relu')(bottleneck)
+    aspect_ratio_output = kl.Dense(2,activation = 'softmax',name = 'aspect_ratio')(_)
+
+    model = Model(inputs = input_layer,outputs = [bookmark_output,aspect_ratio_output])
+
+    return model
+
+
 
 def EMD(t,preds):
     return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t,axis = 1)**2,axis = 1))
