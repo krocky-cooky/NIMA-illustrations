@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from PIL import Image
 from tqdm import tqdm
-from efficientnet.keras import EfficientNetB7
+from efficientnet.keras import EfficientNetB7,EfficientNetB4
 
 
 class WideResBlock(Model):
@@ -238,7 +238,7 @@ def EfficientNet(
     output_dim
 ):
     input_layer = kl.Input(shape = input_shape)
-    efficient_net = EfficientNetB7(
+    efficient_net = EfficientNetB4(
         weights = 'imagenet',
         include_top = False,
         input_tensor = input_layer,

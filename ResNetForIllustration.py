@@ -449,7 +449,7 @@ class EfficientNetTrainer(object):
         input_shape,
         output_dim,
     ):
-        self.model = WideResNet(input_shape,output_dim)
+        self.model = EfficientNet(input_shape,output_dim)
         optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
