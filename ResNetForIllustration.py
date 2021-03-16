@@ -443,13 +443,20 @@ class Trainer(object):
         ax4.set_title('val_acc')
         plt.show()
     
-class EfficientNetTrainer(object):
+class TrainerV2(object):
     def __init__(
         self,
         input_shape,
         output_dim,
+        model = 'efficient_net'
     ):
-        self.model = EfficientNet(input_shape,output_dim)
+        self.model = None
+        if model == 'efficient_net':
+            self.model = EfficientNet(input_shape,output_dim)
+        elif model == 'wide_res_net':
+            self.model = WideResNet(input_shape,output_dim)
+        else:
+            raise Exception('no match model name')
         optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
@@ -506,7 +513,7 @@ class EfficientNetTrainer(object):
 class EfficientNetMnistTrainer(object):
     def __init__(self,input_shape,output_dim):
         self.model = EfficientNet(input_shape,output_dim)
-        optimizer = tf.keras.optimizes.SGD(
+        optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
         )
