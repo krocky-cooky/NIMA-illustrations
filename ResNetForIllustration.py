@@ -508,7 +508,7 @@ class EfficientNetTrainer(object):
     
 
         
-class DataGenerator(Sequence):
+class DataGenerator(tf.keras.utils.Sequence):
     def __init__(
         self,
         data,
