@@ -470,8 +470,18 @@ class EfficientNetTrainer(object):
         batch_size,
         image_path
     ):
-        train_steps, train_batches = self.batch_iter(x_train,t_train,batch_size,shuffle = True,image_path = image_path)
-        val_steps,val_batches = self.batch_iter(x_val,t_val,batch_size,shuffle = False,image_path = image_path)
+        train_gen = DataGenerator(
+            x_train,
+            t_train,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+        val_gen = DataGenerator(
+            x_val,
+            t_val,
+            image_path = image_path,
+            batch_size = batch_size
+        )
 
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
@@ -485,49 +495,53 @@ class EfficientNetTrainer(object):
         
         
         self.history = self.model.fit_generator(
-            train_batches,
-            train_steps,
+            train_gen,
+            len(train_gen),
             epochs = 30,
-            validation_data = val_batches,
-            validation_steps = val_steps,
-            callbacks = callbacks
+            validation_data = val_gen,
+            validation_steps = len(val_gen),
+            callbacks = callbacks,
+            shuffle = True
         )
         
     
-    def batch_iter(
+    
+
+        
+class DataGenerator(Sequence):
+    def __init__(
         self,
         data,
         target,
-        batch_size,
-        shuffle,
-        image_path
+        image_path,
+        batch_size = 512
     ):
-        n_batches = data.shape[0] // batch_size
-
-        def data_generator():
-            data_size = data.shape[0]
-            while True:
-                x_ = None
-                t_ = None
-                if shuffle:
-                    x_,t_  = utils.shuffle(data,target)
-                else:
-                    x_,t_ = utils.shuffle(data,target)
-                
-                for i in range(n_batches):
-                    start = i*batch_size
-                    end = min(data.shape[0],start + batch_size)
-                    x_batch = x_[start:end]
-                    t_batch = t_[start:end]
-                    img_batch = list()
-                    for id in x_batch:
-                        image = np.load(image_path + '/' + str(id) + '.npy')
-                        img_batch.append(image/255)
-                    yield np.array(img_batch),t_batch
         
-        return n_batches,data_generator()
 
-        
+        self.x_ = data
+        self.t_ = target
+        self.batch_size = batch_size
+        self.image_path = image_path
+        self.data_size = data.shape[0]
+        self.n_batches = self.data_size // self.batch_size
+
+    def __getitem__(self,idx):
+        start = self.batch_size*idx
+        end = min(start + self.batch_size,self.data_size)
+        x_batch = self.x_[start:end]
+        t_batch = self.t_[start:end]
+        for id in x_batch:
+            image = np.load(self.image_path + '/' + str(id) + '.npy')
+            img_batch.append(image/255)
+        img_batch = np.array(img_batch)
+        return img_batch,t_batch
+
+    def __len__(self):
+        return self.n_batches
+
+    def on_epoch_end(self):
+        pass
+
 
 
 
