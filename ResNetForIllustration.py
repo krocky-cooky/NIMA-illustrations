@@ -502,6 +502,35 @@ class EfficientNetTrainer(object):
             validation_steps = len(val_gen),
             callbacks = callbacks,
         )
+
+class EfficientNetMnistTrainer(object):
+    def __init__(self,input_shape,output_dim):
+        self.model = EfficientNet(input_shape,output_dim)
+        optimizer = tf.keras.optimizes.SGD(
+            learning_rate = 0.1,
+            momentum = 0.1
+        )
+        self.model.compile(
+            optimizer = optimizer,
+            loss = 'categorical_crossentropy',
+            metrics = ['acc']
+        )
+    def train(
+        self,
+        x_train,
+        t_train,
+        x_val,
+        t_val,
+        epochs,
+        batch_size,
+    ):
+        self.history = self.model.fit(
+            x_train,
+            t_train,
+            batch_size = batch_size,
+            epochs = 30,
+            validation_data = (x_val,t_val)
+        )
         
     
     
