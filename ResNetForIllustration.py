@@ -530,6 +530,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         end = min(start + self.batch_size,self.data_size)
         x_batch = self.x_[start:end]
         t_batch = self.t_[start:end]
+        img_batch = list()
         for id in x_batch:
             image = np.load(self.image_path + '/' + str(id) + '.npy')
             img_batch.append(image/255)
