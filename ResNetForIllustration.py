@@ -449,7 +449,7 @@ class EfficientNetTrainer(object):
         input_shape,
         output_dim,
     ):
-        self.model = EfficientNet(input_shape,output_dim)
+        self.model = WideResNet(input_shape,output_dim)
         optimizer = tf.keras.optimizers.SGD(
             learning_rate = 0.1,
             momentum = 0.1
@@ -501,7 +501,6 @@ class EfficientNetTrainer(object):
             validation_data = val_gen,
             validation_steps = len(val_gen),
             callbacks = callbacks,
-            shuffle = True
         )
         
     
@@ -523,7 +522,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         self.batch_size = batch_size
         self.image_path = image_path
         self.data_size = data.shape[0]
-        self.n_batches = self.data_size // self.batch_size
+        self.n_batches = (self.data_size-1) // self.batch_size + 1
 
     def __getitem__(self,idx):
         start = self.batch_size*idx
@@ -531,6 +530,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         x_batch = self.x_[start:end]
         t_batch = self.t_[start:end]
         img_batch = list()
+
         for id in x_batch:
             image = np.load(self.image_path + '/' + str(id) + '.npy')
             img_batch.append(image/255)
@@ -541,7 +541,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         return self.n_batches
 
     def on_epoch_end(self):
-        pass
+        self.x_,self.t_ = utils.shuffle(self.x_,self.t_)
 
 
 
