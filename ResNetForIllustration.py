@@ -474,7 +474,7 @@ class EfficientNetTrainer(object):
         val_steps,val_batches = self.batch_iter(x_val,t_val,batch_size,shuffle = False,image_path = image_path)
 
         callbacks = [
-            ModelCheckpoint(
+            tf.keras.callbacks.ModelCheckpoint(
                 './logs',
                 monitor = 'val_loss',
                 verbose = 1,
