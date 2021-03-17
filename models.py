@@ -220,7 +220,7 @@ class WideResNet(Model):
                 WideResBlock(128,128) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
-            kl.Dense(1000,activation = 'relu')
+            kl.Dense(1000,activation = 'relu'),
             kl.Dense(output_dim,activation = 'softmax')
         ],
         
