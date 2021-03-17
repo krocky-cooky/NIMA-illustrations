@@ -510,6 +510,25 @@ class TrainerV2(object):
             callbacks = callbacks,
         )
 
+    def evaluate(
+        self,
+        x_test,
+        t_test,
+        batch_size,
+        image_path,
+    ):
+        test_gen = DataGenerator(
+            x_test,
+            t_test,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+
+        self.model.evaluate_generator(
+            test_gen,
+            len(test_gen),
+        )
+
 class TrainerV3(object):
     def __init__(self,input_shape,output_dim,model = 'efficient_net'):
         self.model = None
