@@ -233,11 +233,10 @@ class WideResNet(Model):
                 x = layer(x)
         return x
 
-class WideResNetWithMultiOutput(Model):
+class WideResNetForMultiOutput(Model):
     def __init__(
         self,
         input_shape,
-        output_dim,
     ):
         super().__init__()
         self._layers = [
@@ -276,26 +275,33 @@ class WideResNetWithMultiOutput(Model):
             ],
             kl.GlobalAveragePooling2D()
         ]
-        self.bookmark_encode = kl.Dense(1000,activation = 'relu')
-        self.bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')
-        self.aspect_ratio_encode = kl.Dense(1000,activation = 'relu')
-        self.aspect_ratio_output = kl.Dense(1,activation = 'linear',name = 'aspect_ratio')
+        
         
     def call(self,x):
         for layer in self._layers:
             if isinstance(layer,list):
                 for l in layer:
                     x = l(x)
-            elif isinstance(layer,dict):
-                print(layer)
-                raise Exception('out')
             else:
                 x = layer(x)
-        bookmark = self.bookmark_output(self.bookmark_encode(x))
-        aspect_ratio = self.aspect_ratio_output(self.aspect_ratio_encode(x))
 
-        return [bookmark,aspect_ratio]
+        return x
 
+def WideResNetWithMultiOutput(
+    input_shape,
+    output_dim,
+):
+    input_layer = kl.Input(shape = input_shape)
+    wide_res_net = WideResNetForMultiOutput(input_shape)
+    _ = wide_res_net(input_layer)
+    bookmark_encode = kl.Dense(1000,activation = 'relu')(_)
+    bookmark_output = kl.Dense(output_dim,activation = 'softmax')(bookmark_encode)
+    aspect_ratio_encode = kl.Dense(500,activation = 'relu')(_)
+    aspect_ratio_output = kl.Dense(1,activation = 'linear')(aspect_ratio_encode)
+    outputs = [bookmark_output,aspect_ratio_output]
+    model = Model(input = input_layer,output = outputs)
+
+    return model
 
 
 def EfficientNet(
