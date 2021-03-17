@@ -549,7 +549,7 @@ class TrainerV3(object):
                 'aspect_ratio': 'mse',
             },
             loss_weights = {
-                'bookmark': 5.,
+                'bookmark': 10.,
                 'aspect_ratio': 1.
             },
             metrics = {
