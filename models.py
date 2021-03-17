@@ -286,6 +286,9 @@ class WideResNetWithMultiOutput(Model):
             if isinstance(layer,list):
                 for l in layer:
                     x = l(x)
+            elif isinstance(layer,dict):
+                print(layer)
+                raise Exception('out')
             else:
                 x = layer(x)
         bookmark = self.bookmark_output(self.bookmark_encode(x))
