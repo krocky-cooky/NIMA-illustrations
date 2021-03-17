@@ -546,7 +546,7 @@ class TrainerV3(object):
             optimizer = optimizer,
             loss = {
                 'bookmark': EMD,
-                'aspect_ratio': 'categorical_crossentropy',
+                'aspect_ratio': 'mse',
             },
             loss_weights = {
                 'bookmark': 5.,
@@ -554,29 +554,33 @@ class TrainerV3(object):
             },
             metrics = {
                 'bookmark': 'accuracy',
-                'aspect_ratio': 'accuracy'
+                'aspect_ratio': 'mae'
             }
         )
     
     def train(
         self,
         x_train,
+        aspect_train,
         t_train,
         x_val,
+        aspect_val,
         t_val,
         epochs,
         batch_size,
         image_path,
         save_name = 'best'
     ):
-        train_gen = DataGenerator(
+        train_gen = MultiDataGenerator(
             x_train,
+            aspect_train,
             t_train,
             image_path = image_path,
             batch_size = batch_size
         )
-        val_gen = DataGenerator(
+        val_gen = MultiDataGenerator(
             x_val,
+            aspect_val,
             t_val,
             image_path = image_path,
             batch_size = batch_size
@@ -596,7 +600,7 @@ class TrainerV3(object):
         self.history = self.model.fit_generator(
             train_gen,
             len(train_gen),
-            epochs = 30,
+            epochs = epochs,
             validation_data = val_gen,
             validation_steps = len(val_gen),
             callbacks = callbacks,
@@ -609,8 +613,9 @@ class TrainerV3(object):
         batch_size,
         image_path,
     ):
-        test_gen = DataGenerator(
+        test_gen = MultiDataGenerator(
             x_test,
+            aspect_test,
             t_test,
             image_path = image_path,
             batch_size = batch_size
@@ -684,6 +689,45 @@ class DataGenerator(tf.keras.utils.Sequence):
             img_batch.append(image/255)
         img_batch = np.array(img_batch)
         return img_batch,t_batch
+
+    def __len__(self):
+        return self.n_batches
+
+    def on_epoch_end(self):
+        self.x_,self.t_ = utils.shuffle(self.x_,self.t_)
+
+class MultiDataGenerator(tf.keras.utils.Sequence):
+    def __init__(
+        self,
+        id_data,
+        aspect_ratio_data,
+        target,
+        image_path,
+        batch_size = 512
+    ):
+        
+
+        self.id_ = id_data
+        self.aspect_ratio_ = aspect_ratio_data
+        self.t_ = target
+        self.batch_size = batch_size
+        self.image_path = image_path
+        self.data_size = id_data.shape[0]
+        self.n_batches = (self.data_size-1) // self.batch_size + 1
+
+    def __getitem__(self,idx):
+        start = self.batch_size*idx
+        end = min(start + self.batch_size,self.data_size)
+        x_batch = self.id_[start:end]
+        t_batch = self.t_[start:end]
+        aspect_ratio_batch = self.aspect_ratio_[start:end]
+        img_batch = list()
+
+        for id in x_batch:
+            image = np.load(self.image_path + '/' + str(id) + '.npy')
+            img_batch.append(image/255)
+        img_batch = np.array(img_batch)
+        return img_batch,[t_batch,aspect_ratio_batch]
 
     def __len__(self):
         return self.n_batches

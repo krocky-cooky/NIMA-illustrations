@@ -222,7 +222,7 @@ class WideResNet(Model):
             kl.GlobalAveragePooling2D(),
             kl.Dense(1000,activation = 'relu'),
             kl.Dense(output_dim,activation = 'softmax')
-        ],
+        ]
         
     def call(self,x):
         for layer in self._layers:
@@ -278,8 +278,8 @@ class WideResNetWithMultiOutput(Model):
         ],
         self.bookmark_encode = kl.Dense(1000,activation = 'relu')
         self.bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')
-        self.aspect_ratio_encode = kl.Dense(500,activation = 'relu')
-        self.aspect_ratio_output = kl.Dense(2,activation = 'softmax',name = 'aspect_ratio')
+        self.aspect_ratio_encode = kl.Dense(1000,activation = 'relu')
+        self.aspect_ratio_output = kl.Dense(1,activation = 'linear',name = 'aspect_ratio')
         
     def call(self,x):
         for layer in self._layers:
