@@ -295,9 +295,9 @@ def WideResNetWithMultiOutput(
     wide_res_net = WideResNetForMultiOutput(input_shape)
     _ = wide_res_net(input_layer)
     bookmark_encode = kl.Dense(1000,activation = 'relu')(_)
-    bookmark_output = kl.Dense(output_dim,activation = 'softmax')(bookmark_encode)
+    bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')(bookmark_encode)
     aspect_ratio_encode = kl.Dense(500,activation = 'relu')(_)
-    aspect_ratio_output = kl.Dense(1,activation = 'linear')(aspect_ratio_encode)
+    aspect_ratio_output = kl.Dense(1,activation = 'linear',name = 'aspect_ratio')(aspect_ratio_encode)
     outputs = [bookmark_output,aspect_ratio_output]
     model = Model(inputs = input_layer,outputs = outputs)
 
