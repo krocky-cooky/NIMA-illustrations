@@ -733,7 +733,7 @@ class MultiDataGenerator(tf.keras.utils.Sequence):
         return self.n_batches
 
     def on_epoch_end(self):
-        self.x_,self.t_ = utils.shuffle(self.x_,self.t_)
+        self.id_,self.aspect_ratio_,self.t_ = utils.shuffle(self.id_,self.aspect_ratio_,self.t_)
 
 
 
