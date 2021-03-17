@@ -220,10 +220,10 @@ class WideResNet(Model):
                 WideResBlock(128,128) for _ in range(2)
             ],
             kl.GlobalAveragePooling2D(),
-            kl.Dense(1000,activation = 'relu'),
+            kl.Dense(1000,activation = 'relu')
             kl.Dense(output_dim,activation = 'softmax')
-        ]
-
+        ],
+        
     def call(self,x):
         for layer in self._layers:
             if isinstance(layer,list):
@@ -232,6 +232,68 @@ class WideResNet(Model):
             else:
                 x = layer(x)
         return x
+
+class WideResNetWithMultiOutput(Model):
+    def __init__(
+        self,
+        input_shape,
+        output_dim,
+    ):
+        super().__init__()
+        self._layers = [
+            kl.BatchNormalization(),
+            kl.Activation(tf.nn.relu),
+            kl.Conv2D(
+                filters = 16,
+                kernel_size = 3,
+                strides = 1,
+                padding = 'same',
+                input_shape = input_shape,
+                use_bias = False
+            ),
+            kl.MaxPool2D(pool_size=3, strides=2, padding="same"),
+            WideResBlock(16,32),
+            [
+                WideResBlock(32,32) for _ in range(1)
+            ],
+            kl.Conv2D(
+                64,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ),
+            [
+                WideResBlock(64,64) for _ in range(2)
+            ],
+            kl.Conv2D(
+                128,
+                kernel_size = 1,
+                strides = 2,
+                use_bias = False
+            ),
+            [
+                WideResBlock(128,128) for _ in range(2)
+            ],
+            kl.GlobalAveragePooling2D(),
+        ],
+        self.bookmark_encode = kl.Dense(1000,activation = 'relu')
+        self.bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')
+        self.aspect_ratio_encode = kl.Dense(500,activation = 'relu')
+        self.aspect_ratio_output = kl.Dense(2,activation = 'softmax',name = 'aspect_ratio')
+        
+    def call(self,x):
+        for layer in self._layers:
+            if isinstance(layer,list):
+                for l in layer:
+                    x = l(x)
+            else:
+                x = layer(x)
+        bookmark = self.bookmark_output(self.bookmark_encode(x))
+        aspect_ratio = self.aspect_ratio_output(self.aspect_ratio_encode(x))
+
+        return [bookmark,aspect_ratio]
+
+
 
 def EfficientNet(
     input_shape,
