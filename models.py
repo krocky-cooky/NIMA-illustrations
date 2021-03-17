@@ -274,7 +274,7 @@ class WideResNetWithMultiOutput(Model):
             [
                 WideResBlock(128,128) for _ in range(2)
             ],
-            kl.GlobalAveragePooling2D(),
+            kl.GlobalAveragePooling2D()
         ]
         self.bookmark_encode = kl.Dense(1000,activation = 'relu')
         self.bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')
