@@ -323,7 +323,7 @@ def EfficientNet(
 ):
     input_layer = kl.Input(shape = input_shape)
     efficient_net = EfficientNetB4(
-        weights = 'noisy_student',
+        weights = 'noisy-student',
         include_top = False,
         input_tensor = input_layer,
         pooling = 'max'
