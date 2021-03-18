@@ -326,7 +326,6 @@ def EfficientNet(
         weights = 'noisy-student',
         include_top = False,
         input_tensor = input_layer,
-        pooling = 'max'
     )
 
     for layer in efficient_net.layers:
