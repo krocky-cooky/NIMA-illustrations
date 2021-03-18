@@ -475,7 +475,8 @@ class TrainerV2(object):
         t_val,
         epochs,
         batch_size,
-        image_path
+        image_path,
+        save_name
     ):
         train_gen = DataGenerator(
             x_train,
@@ -492,7 +493,7 @@ class TrainerV2(object):
 
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
-                './logs',
+                save_name,
                 monitor = 'val_loss',
                 verbose = 1,
                 save_best_only = True,
@@ -616,6 +617,93 @@ class TrainerV3(object):
         test_gen = MultiDataGenerator(
             x_test,
             aspect_test,
+            t_test,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+
+        self.model.evaluate_generator(
+            test_gen,
+            len(test_gen),
+        )
+
+class TrainerV4(object):
+    def __init__(
+        self,
+        input_shape,
+        output_dim,
+        model = 'efficient_net'
+    ):
+        self.model = None
+        if model == 'efficient_net':
+            self.model = EfficientNet(input_shape,output_dim)
+        elif model == 'wide_res_net':
+            self.model = WideResNetWithRatio(input_shape,output_dim)
+        else:
+            raise Exception('no match model name')
+        optimizer = tf.keras.optimizers.SGD(
+            learning_rate = 0.1,
+            momentum = 0.1
+        )
+        self.model.compile(
+            optimizer = optimizer,
+            loss = EMD,
+            metrics = ['acc']
+        )
+
+    def train(
+        self,
+        x_train,
+        t_train,
+        x_val,
+        t_val,
+        epochs,
+        batch_size,
+        image_path,
+        save_name
+    ):
+        train_gen = DataGenerator(
+            x_train,
+            t_train,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+        val_gen = DataGenerator(
+            x_val,
+            t_val,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+
+        callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                save_name,
+                monitor = 'val_loss',
+                verbose = 1,
+                save_best_only = True,
+                mode = 'min'
+                )
+        ]
+        
+        
+        self.history = self.model.fit_generator(
+            train_gen,
+            len(train_gen),
+            epochs = 30,
+            validation_data = val_gen,
+            validation_steps = len(val_gen),
+            callbacks = callbacks,
+        )
+
+    def evaluate(
+        self,
+        x_test,
+        t_test,
+        batch_size,
+        image_path,
+    ):
+        test_gen = DataGenerator(
+            x_test,
             t_test,
             image_path = image_path,
             batch_size = batch_size

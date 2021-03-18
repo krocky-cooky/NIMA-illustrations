@@ -303,6 +303,19 @@ def WideResNetWithMultiOutput(
 
     return model
 
+def WideResNetWithRatio(
+    input1_shape,
+    input2_shape,
+    output_dim
+):
+    input1 = kl.Input(shape = input1_shape)
+    input2 = kl.Input(shape = input2_shape)
+    wide_res_net = WideResNetForMultiOutput(input_shape)
+    wrn_out = wide_res_net(input1)
+    _ = tf.concat(wrn_out,input)
+
+
+
 
 def EfficientNet(
     input_shape,
@@ -310,7 +323,7 @@ def EfficientNet(
 ):
     input_layer = kl.Input(shape = input_shape)
     efficient_net = EfficientNetB4(
-        weights = 'imagenet',
+        weights = 'noisy_student',
         include_top = False,
         input_tensor = input_layer,
         pooling = 'max'
@@ -321,7 +334,9 @@ def EfficientNet(
 
     bottleneck = efficient_net.output
 
-    _ = kl.Dense(1000,activation = 'relu')(bottleneck)
+    _ = kl.GlobalAveragePooling2D()(bottleneck)
+
+    _ = kl.Dense(1000,activation = 'relu')(_)
     bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')(_)
 
     #_ = kl.Dense(1000,activvation = 'relu')(bottleneck)
