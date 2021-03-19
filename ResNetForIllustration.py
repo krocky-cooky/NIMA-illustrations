@@ -14,7 +14,7 @@ import json
 import os,sys
 sys.path.append(os.path.dirname(__file__))
 
-from models import ResNet,WideResNet,EfficientNet,EfficientNetWithMultiOutput,WideResNetWithMultiOutput,EMD
+from models import ResNet,WideResNet,EfficientNet,EfficientNetWithRatio,WideResNetWithMultiOutput,EMD
 
 class DataLoader(object):
     def __init__(self,file):
