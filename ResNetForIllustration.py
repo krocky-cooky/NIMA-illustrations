@@ -801,7 +801,7 @@ class MultiDataGenerator(tf.keras.utils.Sequence):
     ):
         
 
-        self.id_ = data[:,0]
+        self.id_ = data[:,0].astype(np.int32)
         self.aspect_ratio_ = data[:,1]
         self.t_ = target
         self.batch_size = batch_size
