@@ -8,6 +8,7 @@ from sklearn import utils
 from PIL import Image
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score,confusion_matrix
 import json
 
 import os,sys
@@ -630,15 +631,16 @@ class TrainerV3(object):
 class TrainerV4(object):
     def __init__(
         self,
-        input_shape,
+        input1_shape,
+        input2_shape,
         output_dim,
         model = 'efficient_net'
     ):
         self.model = None
         if model == 'efficient_net':
-            self.model = EfficientNet(input_shape,output_dim)
-        elif model == 'wide_res_net':
-            self.model = WideResNetWithRatio(input_shape,output_dim)
+            self.model = EfficientNetWithRatio(input1_shape,input2_shape,output_dim)
+        #elif model == 'wide_res_net':
+        #    self.model = WideResNetWithRatio(input_shape,output_dim)
         else:
             raise Exception('no match model name')
         optimizer = tf.keras.optimizers.SGD(
@@ -662,13 +664,13 @@ class TrainerV4(object):
         image_path,
         save_name
     ):
-        train_gen = DataGenerator(
+        train_gen = MultiDataGenerator(
             x_train,
             t_train,
             image_path = image_path,
             batch_size = batch_size
         )
-        val_gen = DataGenerator(
+        val_gen = MultiDataGenerator(
             x_val,
             t_val,
             image_path = image_path,
@@ -702,17 +704,22 @@ class TrainerV4(object):
         batch_size,
         image_path,
     ):
-        test_gen = DataGenerator(
+        test_gen = MultiDataGenerator(
             x_test,
             t_test,
             image_path = image_path,
             batch_size = batch_size
         )
 
-        self.model.evaluate_generator(
+        preds = self.model.predict_generator(
             test_gen,
             len(test_gen),
         )
+        acc = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(pred,axis = 1))
+        cm = confusion_matrix(np.argmax(t_test,axis = 1),np.argmax(pred,axis = 1))
+        print(acc,cm)
+        return (acc,cm)
+
 
 
 class EfficientNetMnistTrainer(object):
@@ -787,20 +794,19 @@ class DataGenerator(tf.keras.utils.Sequence):
 class MultiDataGenerator(tf.keras.utils.Sequence):
     def __init__(
         self,
-        id_data,
-        aspect_ratio_data,
+        data,
         target,
         image_path,
         batch_size = 512
     ):
         
 
-        self.id_ = id_data
-        self.aspect_ratio_ = aspect_ratio_data
+        self.id_ = data[:,0]
+        self.aspect_ratio_ = data[:,1]
         self.t_ = target
         self.batch_size = batch_size
         self.image_path = image_path
-        self.data_size = id_data.shape[0]
+        self.data_size = data.shape[0]
         self.n_batches = (self.data_size-1) // self.batch_size + 1
 
     def __getitem__(self,idx):
@@ -815,7 +821,7 @@ class MultiDataGenerator(tf.keras.utils.Sequence):
             image = np.load(self.image_path + '/' + str(id) + '.npy')
             img_batch.append(image/255)
         img_batch = np.array(img_batch)
-        return img_batch,[t_batch,aspect_ratio_batch]
+        return [img_batch,aspect_ratio_batch],t_batch
 
     def __len__(self):
         return self.n_batches
