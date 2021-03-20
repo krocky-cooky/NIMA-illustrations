@@ -715,8 +715,8 @@ class TrainerV4(object):
             test_gen,
             len(test_gen),
         )
-        acc = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(pred,axis = 1))
-        cm = confusion_matrix(np.argmax(t_test,axis = 1),np.argmax(pred,axis = 1))
+        acc = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
+        cm = confusion_matrix(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
         print(acc,cm)
         return (acc,cm)
 
