@@ -530,10 +530,13 @@ class TrainerV2(object):
             test_gen,
             len(test_gen),
         )
-        acc = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
+        idx = np.array([0,1,2,3,4])
+        acc1 = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
+        acc2 = accuracy_score(np.argmax(t_test,axis = 1),np.sum(preds*idx,axis = 1).astype(np.int32))
+
         cm = confusion_matrix(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
-        print(acc,cm)
-        return (acc,cm)
+        print(acc1,acc2,cm)
+        return (acc1,acc2,cm)
 
 class TrainerV3(object):
     def __init__(self,input_shape,output_dim,model = 'efficient_net'):
