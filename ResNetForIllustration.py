@@ -519,7 +519,7 @@ class TrainerV2(object):
         batch_size,
         image_path,
     ):
-        test_gen = MultiDataGenerator(
+        test_gen = DataGenerator(
             x_test,
             t_test,
             image_path = image_path,
