@@ -519,17 +519,21 @@ class TrainerV2(object):
         batch_size,
         image_path,
     ):
-        test_gen = DataGenerator(
+        test_gen = MultiDataGenerator(
             x_test,
             t_test,
             image_path = image_path,
             batch_size = batch_size
         )
 
-        self.model.evaluate_generator(
+        preds = self.model.predict_generator(
             test_gen,
             len(test_gen),
         )
+        acc = accuracy_score(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
+        cm = confusion_matrix(np.argmax(t_test,axis = 1),np.argmax(preds,axis = 1))
+        print(acc,cm)
+        return (acc,cm)
 
 class TrainerV3(object):
     def __init__(self,input_shape,output_dim,model = 'efficient_net'):
