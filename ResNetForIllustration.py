@@ -448,12 +448,13 @@ class TrainerV2(object):
     def __init__(
         self,
         input_shape,
+        encode_dim,
         output_dim,
         model = 'efficient_net'
     ):
         self.model = None
         if model == 'efficient_net':
-            self.model = EfficientNet(input_shape,output_dim)
+            self.model = EfficientNet(input_shape,encode_dim,output_dim)
         elif model == 'wide_res_net':
             self.model = WideResNet(input_shape,output_dim)
         else:
@@ -640,12 +641,13 @@ class TrainerV4(object):
         self,
         input1_shape,
         input2_shape,
+        encode_dim,
         output_dim,
         model = 'efficient_net'
     ):
         self.model = None
         if model == 'efficient_net':
-            self.model = EfficientNetWithRatio(input1_shape,input2_shape,output_dim)
+            self.model = EfficientNetWithRatio(input1_shape,input2_shape,encode_dim,output_dim)
         #elif model == 'wide_res_net':
         #    self.model = WideResNetWithRatio(input_shape,output_dim)
         else:

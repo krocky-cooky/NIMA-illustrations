@@ -306,6 +306,7 @@ def WideResNetWithMultiOutput(
 def EfficientNetWithRatio(
     input1_shape,
     input2_shape,
+    encode_dim,
     output_dim
 ):
     input1 = kl.Input(shape = input1_shape)
@@ -324,7 +325,7 @@ def EfficientNetWithRatio(
     pool_out = kl.GlobalAveragePooling2D()(bottleneck)
     ratio_out = kl.Dense(1,activation = 'linear')(input2)
     _ = kl.concatenate([pool_out,ratio_out])
-    _ = kl.Dense(1000,activation = 'relu')(_)
+    _ = kl.Dense(encode_dim,activation = 'relu')(_)
     outputs = kl.Dense(output_dim,activation = 'softmax')(_)
 
     model = Model(inputs = [input1,input2],outputs = outputs)
@@ -337,6 +338,7 @@ def EfficientNetWithRatio(
 
 def EfficientNet(
     input_shape,
+    encode_dim,
     output_dim
 ):
     input_layer = kl.Input(shape = input_shape)
@@ -353,7 +355,7 @@ def EfficientNet(
 
     _ = kl.GlobalAveragePooling2D()(bottleneck)
 
-    _ = kl.Dense(1000,activation = 'relu')(_)
+    _ = kl.Dense(encode_dim,activation = 'relu')(_)
     bookmark_output = kl.Dense(output_dim,activation = 'softmax',name = 'bookmark')(_)
 
     #_ = kl.Dense(1000,activvation = 'relu')(bottleneck)
