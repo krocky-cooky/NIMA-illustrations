@@ -323,7 +323,7 @@ def EfficientNetWithRatio(
     bottleneck = efficient_net.output
 
     pool_out = kl.GlobalAveragePooling2D()(bottleneck)
-    ratio_out = kl.Dense(1,activation = 'linear')(input2)
+    ratio_out = kl.Dense(5,activation = 'linear')(input2)
     _ = kl.concatenate([pool_out,ratio_out])
     _ = kl.Dense(encode_dim,activation = 'relu')(_)
     outputs = kl.Dense(output_dim,activation = 'softmax')(_)
