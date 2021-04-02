@@ -450,7 +450,8 @@ class TrainerV2(object):
         input_shape,
         encode_dim,
         output_dim,
-        model = 'efficient_net'
+        model = 'efficient_net',
+        loss = 'emd'
     ):
         self.model = None
         if model == 'efficient_net':
@@ -463,9 +464,16 @@ class TrainerV2(object):
             learning_rate = 0.1,
             momentum = 0.1
         )
+        loss_func = None
+        if loss == 'emd':
+            loss_func = EMD
+        elif loss == 'categorical_crossentropy':
+            loss_func = 'categorical_crossentropy'
+        else:
+            raise Exception('no match loss function')
         self.model.compile(
             optimizer = optimizer,
-            loss = EMD,
+            loss = loss_func,
             metrics = ['acc']
         )
 
@@ -643,7 +651,8 @@ class TrainerV4(object):
         input2_shape,
         encode_dim,
         output_dim,
-        model = 'efficient_net'
+        model = 'efficient_net',
+        loss = 'emd'
     ):
         self.model = None
         if model == 'efficient_net':
@@ -656,9 +665,16 @@ class TrainerV4(object):
             learning_rate = 0.1,
             momentum = 0.1
         )
+        loss_func = None
+        if loss == 'emd':
+            loss_func = EMD
+        elif loss == 'categorical_crossentropy':
+            loss_func = 'categorical_crossentropy'
+        else:
+            raise Exception('no match loss function')
         self.model.compile(
             optimizer = optimizer,
-            loss = EMD,
+            loss = loss_func,
             metrics = ['acc']
         )
 
