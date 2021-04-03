@@ -652,7 +652,8 @@ class TrainerV4(object):
         encode_dim,
         output_dim,
         model = 'efficient_net',
-        loss = 'emd'
+        loss = 'emd',
+        learning_rate = 0.1
     ):
         self.model = None
         if model == 'efficient_net':
@@ -662,7 +663,7 @@ class TrainerV4(object):
         else:
             raise Exception('no match model name')
         optimizer = tf.keras.optimizers.SGD(
-            learning_rate = 0.1,
+            learning_rate = learning_rate,
             momentum = 0.1
         )
         loss_func = None
