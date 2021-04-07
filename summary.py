@@ -18,12 +18,16 @@ sys.path.append(os.path.dirname(__file__))
 
 np.random.seed(100)
 
+
 def EfficientNetWithRatio(
     input1_shape,
     input2_shape,
     encode_dim,
     output_dim
 ):
+"""
+モデル
+"""
     input1 = kl.Input(shape = input1_shape)
     input2 = kl.Input(shape = input2_shape)
     efficient_net = EfficientNetB4(
@@ -39,7 +43,7 @@ def EfficientNetWithRatio(
 
     pool_out = kl.GlobalAveragePooling2D()(bottleneck)
     ratio_out = kl.Dense(5,activation = 'linear')(input2)
-    _ = kl.concatenate([pool_out,ratio_out])
+    _ = kl.concatenate([pool_out,ratio_out])##　アスペクト比をベクトルに結合
     _ = kl.Dense(encode_dim,activation = 'relu')(_)
     outputs = kl.Dense(output_dim,activation = 'softmax')(_)
 
@@ -48,6 +52,10 @@ def EfficientNetWithRatio(
     return model
 
 class MultiDataGenerator(tf.keras.utils.Sequence):
+    """
+    画像をバッチごとに読み込むために必要なコード
+    datageneratorというらしい
+    """
     def __init__(
         self,
         data,
@@ -86,6 +94,11 @@ class MultiDataGenerator(tf.keras.utils.Sequence):
         self.id_,self.aspect_ratio_,self.t_ = utils.shuffle(self.id_,self.aspect_ratio_,self.t_)
 
 
+def EMD(t,preds):
+    """
+    Earth Mover's Distance
+    """
+    return tf.reduce_mean(tf.reduce_sum(tf.math.cumsum(preds-t,axis = 1)**2,axis = 1))
 
 class TrainerV4(object):
     def __init__(
