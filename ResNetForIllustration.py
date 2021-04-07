@@ -746,6 +746,26 @@ class TrainerV4(object):
         print(acc,cm)
         return (acc,cm)
 
+    def predict(
+        self,
+        ids,
+        batch_size,
+        image_path
+    ):
+        test_gen = MultiDataGenerator(
+            ids,
+            ids,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+        preds = self.model.predict_generator(
+            test_gen,
+            len(test_gen)
+        )
+        print(preds)
+        return preds
+
+
 
 
 class EfficientNetMnistTrainer(object):
