@@ -21,6 +21,7 @@ np.random.seed(100)
 def EfficientNetWithRatio(
     input1_shape,
     input2_shape,
+    encode_dim,
     output_dim
 ):
     input1 = kl.Input(shape = input1_shape)
@@ -37,9 +38,9 @@ def EfficientNetWithRatio(
     bottleneck = efficient_net.output
 
     pool_out = kl.GlobalAveragePooling2D()(bottleneck)
-    ratio_out = kl.Dense(1,activation = 'linear')(input2)
+    ratio_out = kl.Dense(5,activation = 'linear')(input2)
     _ = kl.concatenate([pool_out,ratio_out])
-    _ = kl.Dense(1000,activation = 'relu')(_)
+    _ = kl.Dense(encode_dim,activation = 'relu')(_)
     outputs = kl.Dense(output_dim,activation = 'softmax')(_)
 
     model = Model(inputs = [input1,input2],outputs = outputs)
@@ -91,23 +92,33 @@ class TrainerV4(object):
         self,
         input1_shape,
         input2_shape,
+        encode_dim,
         output_dim,
-        model = 'efficient_net'
+        model = 'efficient_net',
+        loss = 'emd',
+        learning_rate = 0.1
     ):
         self.model = None
         if model == 'efficient_net':
-            self.model = EfficientNetWithRatio(input1_shape,input2_shape,output_dim)
+            self.model = EfficientNetWithRatio(input1_shape,input2_shape,encode_dim,output_dim)
         #elif model == 'wide_res_net':
         #    self.model = WideResNetWithRatio(input_shape,output_dim)
         else:
             raise Exception('no match model name')
         optimizer = tf.keras.optimizers.SGD(
-            learning_rate = 0.1,
+            learning_rate = learning_rate,
             momentum = 0.1
         )
+        loss_func = None
+        if loss == 'emd':
+            loss_func = EMD
+        elif loss == 'categorical_crossentropy':
+            loss_func = 'categorical_crossentropy'
+        else:
+            raise Exception('no match loss function')
         self.model.compile(
             optimizer = optimizer,
-            loss = EMD,
+            loss = loss_func,
             metrics = ['acc']
         )
 
@@ -178,6 +189,25 @@ class TrainerV4(object):
         print(acc,cm)
         return (acc,cm)
 
+    def predict(
+        self,
+        ids,
+        batch_size,
+        image_path
+    ):
+        test_gen = MultiDataGenerator(
+            ids,
+            ids,
+            image_path = image_path,
+            batch_size = batch_size
+        )
+        preds = self.model.predict_generator(
+            test_gen,
+            len(test_gen)
+        )
+        print(preds)
+        return preds
+
 if __name__ == '__main__':
 
     df = pd.read_csv('./target_available_v2.csv')
@@ -219,6 +249,7 @@ if __name__ == '__main__':
     trainer = TrainerV4(
         input1_shape = (128,128,3),
         input2_shape = (1,),
+        encode_dim = 1000
         output_dim = 5,
         model = 'efficient_net',
     )
